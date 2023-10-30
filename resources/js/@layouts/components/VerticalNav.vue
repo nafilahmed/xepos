@@ -64,7 +64,7 @@ const handleNavScroll = evt => {
           />
 
           <h1 class="leading-normal">
-            sneat
+            XEPOS
           </h1>
         </RouterLink>
       </slot>

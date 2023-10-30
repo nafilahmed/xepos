@@ -29,7 +29,7 @@ const isPasswordVisible = ref(false)
         </template>
 
         <VCardTitle class="text-2xl font-weight-bold">
-          sneat
+          XEPOS
         </VCardTitle>
       </VCardItem>
 
