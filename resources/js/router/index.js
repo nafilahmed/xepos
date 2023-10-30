@@ -14,7 +14,8 @@ const router = createRouter({
           path: 'company',
           component: () => import('../pages/company.vue'),
           meta: {
-            middleware: "auth"
+            middleware: "auth",
+            title: `Company`
           },
         },
         {
@@ -22,7 +23,8 @@ const router = createRouter({
           path: 'employee',
           component: () => import('../pages/employee.vue'),
           meta: {
-            middleware: "auth"
+            middleware: "auth",
+            title: `Employee`
           },
         },
       ],
