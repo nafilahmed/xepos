@@ -11,17 +11,17 @@ import laravel from 'laravel-vite-plugin'
 export default defineConfig({
   plugins: [
     laravel({
-  input: ['resources/js/main.js'],
-  refresh: true,
-}),
+      input: ['resources/js/main.js'],
+      refresh: true,
+    }),
     vue({
-  template: {
-      transformAssetUrls: {
+      template: {
+        transformAssetUrls: {
           base: null,
           includeAbsolute: false,
+        },
       },
-  },
-}),
+    }),
     vueJsx(),
 
     // Docs: https://github.com/vuetifyjs/vuetify-loader/tree/master/packages/vite-plugin

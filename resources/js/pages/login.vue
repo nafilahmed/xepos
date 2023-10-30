@@ -42,12 +42,13 @@ const isPasswordVisible = ref(false)
       </VCardText>
 
       <VCardText>
-        <VForm @submit.prevent="$router.push('/')">
+        <VForm @submit.prevent="login()">
           <VRow>
             <!-- email -->
             <VCol cols="12">
               <VTextField
-                v-model="form.email"
+                v-model="auth.email"
+                name="email"
                 autofocus
                 placeholder="johndoe@email.com"
                 label="Email"
@@ -58,7 +59,8 @@ const isPasswordVisible = ref(false)
             <!-- password -->
             <VCol cols="12">
               <VTextField
-                v-model="form.password"
+              v-model="auth.password"
+                name="password"
                 label="Password"
                 placeholder="············"
                 :type="isPasswordVisible ? 'text' : 'password'"
@@ -85,3 +87,41 @@ const isPasswordVisible = ref(false)
 <style lang="scss">
 @use "@core-scss/template/pages/page-auth.scss";
 </style>
+
+<script>
+import { mapActions } from 'vuex'
+export default {
+    name:"login",
+    data(){
+        return {
+            auth:{
+                email:"",
+                password:""
+            },
+            validationErrors:{},
+            processing:false
+        }
+    },
+    methods:{
+        ...mapActions({
+            signIn:'auth/login'
+        }),
+        async login(){
+            this.processing = true
+            await axios.get('/sanctum/csrf-cookie')
+            await axios.post('/login',this.auth).then(({data})=>{
+                this.signIn()
+            }).catch(({response})=>{
+                if(response.status===422){
+                    this.validationErrors = response.data.errors
+                }else{
+                    this.validationErrors = {}
+                    alert(response.data.message)
+                }
+            }).finally(()=>{
+                this.processing = false
+            })
+        },
+    }
+}
+</script>
