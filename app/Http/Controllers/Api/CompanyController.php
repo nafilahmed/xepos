@@ -44,7 +44,19 @@ class CompanyController extends Controller
                 return response(['error' => $validator->errors(), 'Validation Error']);
             }
 
-            Company::create($data);
+            if(!empty($data['logo'])){
+                $file = $request->file('logo');
+                $name = '/logos/' . uniqid() . '.' . $file->extension();
+                $file->storePubliclyAs('/public', $name);
+                $data['logo'] = $name;
+            }
+
+            if(!empty($data['id'])){
+                Company::where('id',$data['id'])->update($data);
+            }else{
+                Company::create($data);
+            }
+
 
             $message = 'Company stored successfully';
         } catch (\Illuminate\Database\QueryException $qe) {
@@ -72,50 +84,6 @@ class CompanyController extends Controller
         $company = Company::find($id);
 
         return response(['status_code' => 200, 'company' => new CompanyResource($company)]);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Company  $company
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Company $company)
-    {
-        $status = 200;
-        try {
-            $data = $request->all();
-
-            $validator = Validator::make($data, [
-                'name' => 'required|max:10',
-                'email' => 'max:255',
-                'website' => 'max:255',
-            ]);
-
-            if ($validator->fails()) {
-                return response(['error' => $validator->errors(), 'Validation Error']);
-            }
-
-            $company->update($data);
-
-            return response([
-                'status_code' => $status,
-                'company' => new CompanyResource($company),
-                'message' => 'Company updated successfully'
-            ]);
-        } catch (\Illuminate\Database\QueryException $qe) {
-            $status = 500;
-            $message = $qe->getMessage();
-        } catch (\Exception $ex) {
-            $status = 500;
-            $message = $ex->getMessage();
-        } catch (\Throwable $t) {
-            $status = 500;
-            $message = $t->getMessage();
-        }
-
-        return response(['status_code' => $status, 'message' => $message]);
     }
 
     /**

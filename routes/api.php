@@ -20,5 +20,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::apiResource('company', CompanyController::class)->middleware('auth:sanctum');
-Route::apiResource('employee', EmployeeController::class)->middleware('auth:sanctum');
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::apiResource('company', CompanyController::class);
+    Route::apiResource('employee', EmployeeController::class);
+});

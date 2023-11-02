@@ -1,8 +1,8 @@
 <template>
   <VCard>
     <VCardTitle>
-    <div class="d-flex justify-space-between flex-wrap pt-5">
-      <div class="me-2 mb-2">
+      <div class="d-flex justify-space-between flex-wrap pt-5">
+        <div class="me-2 mb-2">
           Companies
         </div>
         <VBtn @click="openCreateModal()" class="me-2 mb-2">Add New</VBtn>
@@ -48,38 +48,42 @@
 
   <div class="text-center">
     <VDialog v-model="dialog" width="600">
-      <VCard :title="type+' Company'">
+      <VCard :title="type + ' Company'">
         <VCardText>
-          <VForm ref="form">
+          <VForm ref="form" enctype="multipart/form-data">
             <VRow>
               <VCol cols="12">
-                <VTextField v-model="this.companyName" variant="outlined" hide-details color="primary" :rules="nameRules" label="Name" />
+                <VTextField v-model="this.formData.name" variant="outlined" hide-details color="primary"
+                  :rules="nameRules" label="Name" />
               </VCol>
               <VCol cols="12">
-                <VTextField v-model="this.companyEmail" variant="outlined" hide-details color="primary" :rules="emailRules" label="Email" />
+                <VTextField type="file" accept="image/png, image/jpeg, image/bmp" hidden placeholder="Pick an logo"
+                  prepend-inner-icon="mdi-camera" label="Logo" ref="file" @change="handleFileObject()"></VTextField>
               </VCol>
               <VCol cols="12">
-                <VTextField v-model="this.companyWebsite" variant="outlined" hide-details color="primary" label="Website" />
+                <VTextField v-model="this.formData.email" variant="outlined" hide-details color="primary"
+                  :rules="emailRules" label="Email" />
               </VCol>
-
+              <VCol cols="12">
+                <VTextField v-model="this.formData.website" variant="outlined" hide-details color="primary"
+                  label="Website" />
+              </VCol>
               <VCol cols="12" v-if="this.isUpdated != 0">
                 <VAlert :color="(this.isUpdated == 200) ? 'success' : 'error'"
                   :icon="(this.isUpdated == 200) ? $success : $error" :title="this.alertMsg"></VAlert>
               </VCol>
-
             </VRow>
           </VForm>
         </VCardText>
         <VCardActions>
           <VSpacer></VSpacer>
-          <VBtn color="info" variant="text" @click="(this.type == 'Create') ? createCompany() : updateCompany()">
+          <VBtn color="info" variant="text" @click="createCompany()">
             {{ (this.type == 'Create') ? 'Create' : 'Save' }} </VBtn>
         </VCardActions>
       </VCard>
     </VDialog>
   </div>
-  
-  
+
   <div class="text-center">
 
     <VDialog v-model="deleteCompany" width="600">
@@ -102,7 +106,6 @@
     </VDialog>
 
   </div>
-
 </template>
 
 <script>
@@ -118,14 +121,23 @@ export default {
         v => ((v && (/^[a-z.-]+@[a-z.-]+\.[a-z]+$/i.test(v))) || !v) || 'Must be a valid e-mail.',
       ],
       allCompanies: {},
-      isUpdated:0,
+      formData: {
+        name: '',
+        email: '',
+        website: '',
+        id: ''
+      },
+      isUpdated: 0,
       dialog: false,
-      companyName : '',
-      companyEmail : '',
-      companyWebsite : '',
-      companyId : '',
-      type:'Create',
-      deleteCompany:false
+      companyId: '',
+      type: 'Create',
+      deleteCompany: false,
+      config: {
+        headers: {
+          'Content-Type': "multipart/form-data; charset=utf-8; boundary=" + Math.random().toString().substr(2)
+        }
+      },
+      logo: '',
     }
   },
   mounted() {
@@ -136,45 +148,33 @@ export default {
     openEditModal: async function (id) {
 
       let { data } = await axios.get('/api/company/' + id);
-      
+
       if (data.status_code == 200) {
         this.isUpdated = 0
-        this.companyName = data.company.name
-        this.companyEmail = data.company.email
-        this.companyWebsite = data.company.website
-        this.companyId = data.company.id
-        
+        this.formData = {
+          name: data.company.name,
+          email: data.company.email,
+          website: data.company.website,
+          id: data.company.id
+        }
+
+        this.logo = ''
         this.type = "Update"
         this.dialog = true
       }
     },
 
-    updateCompany: async function () {
-      this.isUpdated = 0
-      const { valid } = await this.$refs.form.validate()
-
-      if (valid) {
-        let { data } = await axios.put('/api/company/' + this.companyId,
-          {
-            "name": this.companyName,
-            "email": this.companyEmail,
-            "website": this.companyWebsite,
-          });
-
-        this.alertMsg = data.message
-        this.isUpdated = (data.status_code == 200) ? 200 : 500;
-        this.getCompanies();
-      }
-    },
-
     openCreateModal: async function () {
-
-      this.companyName = ''
-        this.companyEmail = ''
-        this.companyWebsite = ''
-        this.companyId = ''
-        this.type = "Create"
-        this.dialog = true;
+      this.isUpdated = 0
+      this.formData = {
+        name: '',
+        email: '',
+        website: '',
+        id: ''
+      }
+      this.logo = ''
+      this.type = "Create"
+      this.dialog = true;
     },
 
     createCompany: async function () {
@@ -182,13 +182,20 @@ export default {
       const { valid } = await this.$refs.form.validate()
 
       if (valid) {
+
         this.isUpdated = 0
+
+        if (this.logo) {
+          // let fData = new FormData()
+          this.formData.logo = this.logo
+        }
+
+        // Object.entries(this.formData).forEach(([key, value]) => {
+        //   this.formData.append(key, value)
+        // })
+
         let { data } = await axios.post('/api/company/',
-          {
-            "name": this.companyName,
-            "email": this.companyEmail,
-            "website": this.companyWebsite,
-          });
+          this.formData, this.config);
         this.alertMsg = data.message
         this.isUpdated = (data.status_code == 200) ? 200 : 500;
 
@@ -213,18 +220,22 @@ export default {
       })
     },
 
-    openDeleteModal: function (id){
-        this.companyId = id
-        this.deleteCompany = true
+    openDeleteModal: function (id) {
+      this.companyId = id
+      this.deleteCompany = true
     },
 
-    deleteCompanyFun: async function (){
-        let {data} = await axios.delete('api/company/'+this.companyId);
-        this.alertMsg = data.message
-        this.isUpdated = (data.status_code == 200) ? 200 : 500;
+    deleteCompanyFun: async function () {
+      let { data } = await axios.delete('api/company/' + this.companyId);
+      this.alertMsg = data.message
+      this.isUpdated = (data.status_code == 200) ? 200 : 500;
 
-        this.getCompanies();
+      this.getCompanies();
     },
+
+    handleFileObject: function () {
+      this.logo = this.$refs.file.files[0]
+    }
   }
 }
 </script>

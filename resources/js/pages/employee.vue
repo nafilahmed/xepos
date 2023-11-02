@@ -87,7 +87,7 @@
                 />
               </VCol>
               <VCol cols="12">
-                <VTextField v-model="this.employeePhone" variant="outlined" hide-details color="primary" :rules="phoneRules" label="Phone" />
+                <VTextField v-model="this.employeePhone" variant="outlined" hide-details color="primary" :rules="phoneRules" label="Phone" placeholder="+1 123 456 7890" type="number" />
               </VCol>
 
               <VCol cols="12" v-if="this.isUpdated != 0">
