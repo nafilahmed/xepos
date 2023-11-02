@@ -1,6 +1,5 @@
 <script setup>
 import { useTheme } from 'vuetify'
-import VerticalNavSectionTitle from '@/@layouts/components/VerticalNavSectionTitle.vue'
 import upgradeBannerDark from '@images/pro/upgrade-banner-dark.png'
 import upgradeBannerLight from '@images/pro/upgrade-banner-light.png'
 import VerticalNavLayout from '@layouts/components/VerticalNavLayout.vue'
@@ -26,10 +25,6 @@ const upgradeBanner = computed(() => {
         
         <VSpacer />
 
-        <IconBtn class="me-2">
-          <VIcon icon="bx-bell" />
-        </IconBtn>
-
         <NavbarThemeSwitcher class="me-2" />
 
         <UserProfile />
@@ -51,26 +46,7 @@ const upgradeBanner = computed(() => {
           to: '/employee',
         }"
       />
-      <!-- 👉 Pages -->
-      <VerticalNavSectionTitle
-        :item="{
-          heading: 'Pages',
-        }"
-      />
-      <VerticalNavLink
-        :item="{
-          title: 'Login',
-          icon: 'bx-log-in',
-          to: '/login',
-        }"
-      />
-      <VerticalNavLink
-        :item="{
-          title: 'Register',
-          icon: 'bx-user-plus',
-          to: '/register',
-        }"
-      />
+
     </template>
 
     <!-- 👉 Pages -->
