@@ -1,8 +1,11 @@
+<script setup>
+  import ValidationError from '@/components/ValidationError.vue';
+</script>
 <template>
   <VCard>
     <VCardTitle>
-    <div class="d-flex justify-space-between flex-wrap pt-5">
-      <div class="me-2 mb-2">
+      <div class="d-flex justify-space-between flex-wrap pt-5">
+        <div class="me-2 mb-2">
           Employees
         </div>
         <VBtn @click="openCreateModal()" class="me-2 mb-2">Add New</VBtn>
@@ -44,7 +47,7 @@
             {{ item.email }}
           </td>
           <td class="text-center">
-            {{ item.company.name }}
+            {{ item.company ? item.company.name : '' }}
           </td>
           <td class="text-center">
             {{ item.phone }}
@@ -60,39 +63,37 @@
 
   <div class="text-center">
     <VDialog v-model="dialog" width="600">
-      <VCard :title="type+' Employee'">
+      <VCard :title="type + ' Employee'">
         <VCardText>
           <VForm ref="Empform">
             <VRow>
               <VCol cols="12">
-                <VTextField v-model="this.employeeFirstName" variant="outlined" hide-details color="primary" :rules="nameRules" label="First Name" required />
+                <VTextField v-model="this.employeeFirstName" variant="outlined" hide-details color="primary"
+                  :rules="nameRules" label="First Name" required />
               </VCol>
               <VCol cols="12">
-                <VTextField v-model="this.employeeLastName" variant="outlined" hide-details color="primary" :rules="nameRules" label="Last Name" />
+                <VTextField v-model="this.employeeLastName" variant="outlined" hide-details color="primary"
+                  :rules="nameRules" label="Last Name" />
               </VCol>
               <VCol cols="12">
-                <VTextField type="email" v-model="this.employeeEmail" variant="outlined" hide-details color="primary" :rules="emailRules" label="Email" required />
+                <VTextField type="email" v-model="this.employeeEmail" variant="outlined" hide-details color="primary"
+                  :rules="emailRules" label="Email" required />
               </VCol>
               <VCol cols="12">
-                <VSelect
-                  label="Company"
-                  v-model="this.employeeCompany"
-                  placeholder="Select Company"
-                  :items="this.allCompanies"
-                  item-value="id"
-                  item-title="name"
-                  return-object
-                  single-line
-                  required
-                />
+                <VSelect label="Company" v-model="this.employeeCompany" placeholder="Select Company"
+                  :items="this.allCompanies" item-value="id" item-title="name" return-object single-line required />
               </VCol>
               <VCol cols="12">
-                <VTextField v-model="this.employeePhone" variant="outlined" hide-details color="primary" :rules="phoneRules" label="Phone" placeholder="+1 123 456 7890" type="number" />
+                <VTextField v-model="this.employeePhone" variant="outlined" hide-details color="primary"
+                  :rules="phoneRules" label="Phone" placeholder="+1 123 456 7890" type="number" />
               </VCol>
 
               <VCol cols="12" v-if="this.isUpdated != 0">
                 <VAlert :color="(this.isUpdated == 200) ? 'success' : 'error'"
                   :icon="(this.isUpdated == 200) ? $success : $error" :title="this.alertMsg"></VAlert>
+              </VCol>
+              <VCol cols="12">
+                <ValidationError :validationErrors="validationErrors" />
               </VCol>
 
             </VRow>
@@ -106,8 +107,8 @@
       </VCard>
     </VDialog>
   </div>
-  
-  
+
+
   <div class="text-center">
 
     <VDialog v-model="deleteEmployee" width="600">
@@ -130,7 +131,6 @@
     </VDialog>
 
   </div>
-
 </template>
 
 <script>
@@ -150,16 +150,18 @@ export default {
       ],
       allCompanies: {},
       allEmployees: {},
-      isUpdated:0,
-      employeeFirstName : '',
-      employeeLastName : '',
-      employeeCompany : {},
-      employeeEmail : '',
-      employeePhone : '',
-      employeeId : '',
-      type:'Create',
-      deleteEmployee:false,
+      isUpdated: 0,
+      employeeFirstName: '',
+      employeeLastName: '',
+      employeeCompany: {},
+      employeeEmail: '',
+      employeePhone: '',
+      employeeId: '',
+      type: 'Create',
+      deleteEmployee: false,
       dialog: false,
+      alertMsg: '',
+      validationErrors: false
     }
   },
   mounted() {
@@ -169,12 +171,11 @@ export default {
 
     openEditModal: async function (id) {
 
-      
+
       let { data } = await axios.get('/api/employee/' + id);
-      
+
       if (data.status_code == 200) {
 
-        
         this.isUpdated = 0
         this.employeeFirstName = data.employee.first_name
         this.employeeLastName = data.employee.last_name
@@ -182,10 +183,10 @@ export default {
         this.employeePhone = data.employee.phone
         this.employeeCompany = data.employee.company
         this.employeeId = data.employee.id
-        
+        this.validationErrors = false
+
         this.type = "Update"
         this.getCompanies();
-
       }
     },
 
@@ -194,18 +195,30 @@ export default {
       const { valid } = await this.$refs.Empform.validate()
 
       if (valid) {
-        let { data } = await axios.put('/api/employee/' + this.employeeId,
+        await axios.put('/api/employee/' + this.employeeId,
           {
             "first_name": this.employeeFirstName,
             "last_name": this.employeeLastName,
             "email": this.employeeEmail,
             "phone": this.employeePhone,
             "company_id": this.employeeCompany.id,
-          });
+          }).then(({ data }) => {
 
-        this.alertMsg = data.message
-        this.isUpdated = (data.status_code == 200) ? 200 : 500;
-        this.getEmployees();
+            if (data.status_code == 200) {
+              this.getEmployees();
+              this.alertMsg = data.message
+              this.isUpdated = 200;
+            } else if (data.status_code == 422) {
+              this.validationErrors = data.error
+            } else {
+              this.alertMsg = data.message
+              this.isUpdated = 500;
+            }
+
+          }).catch(error => {
+            this.alertMsg = error.message
+            this.isUpdated = 500;
+          });
       }
     },
 
@@ -219,8 +232,9 @@ export default {
       this.employeePhone = ''
       this.employeeId = ''
       this.employeeCompany = {}
+      this.validationErrors = false
       this.type = "Create"
-     
+
     },
 
     createEmployee: async function () {
@@ -229,19 +243,30 @@ export default {
 
       if (valid) {
         this.isUpdated = 0
-        let { data } = await axios.post('/api/employee/',
+        await axios.post('/api/employee/',
           {
             "first_name": this.employeeFirstName,
             "last_name": this.employeeLastName,
             "email": this.employeeEmail,
             "phone": this.employeePhone,
             "company_id": this.employeeCompany.id,
+          }).then(({ data }) => {
+
+            if (data.status_code == 200) {
+              this.getEmployees();
+              this.alertMsg = data.message
+              this.isUpdated = 200;
+            } else if (data.status_code == 422) {
+              this.validationErrors = data.error
+            } else {
+              this.alertMsg = data.message
+              this.isUpdated = 500;
+            }
+
+          }).catch(error => {
+            this.alertMsg = error.message
+            this.isUpdated = 500;
           });
-        this.alertMsg = data.message
-        this.isUpdated = (data.status_code == 200) ? 200 : 500;
-
-        this.getEmployees();
-
       }
     },
 
@@ -251,13 +276,9 @@ export default {
         if (data.status_code == 200) {
           this.allEmployees = data.employees;
         }
-      }).catch(({ response }) => {
-        if (response.status === 422) {
-          this.validationErrors = response.data.errors
-        } else {
-          this.validationErrors = {}
-          alert(response.data.message)
-        }
+      }).catch(error => {
+        this.alertMsg = error.message
+        this.isUpdated = 500;
       })
     },
 
@@ -268,27 +289,23 @@ export default {
           this.allCompanies = data.companys;
           this.dialog = true;
         }
-      }).catch(({ response }) => {
-        if (response.status === 422) {
-          this.validationErrors = response.data.errors
-        } else {
-          this.validationErrors = {}
-          alert(response.data.message)
-        }
+      }).catch(error => {
+        this.alertMsg = error.message
+        this.isUpdated = 500;
       })
     },
 
-    openDeleteModal: function (id){
-        this.employeeId = id
-        this.deleteEmployee = true
+    openDeleteModal: function (id) {
+      this.employeeId = id
+      this.deleteEmployee = true
     },
 
-    deleteEmployeeFun: async function (){
-        let {data} = await axios.delete('api/employee/'+this.employeeId);
-        this.alertMsg = data.message
-        this.isUpdated = (data.status_code == 200) ? 200 : 500;
+    deleteEmployeeFun: async function () {
+      let { data } = await axios.delete('api/employee/' + this.employeeId);
+      this.alertMsg = data.message
+      this.isUpdated = (data.status_code == 200) ? 200 : 500;
 
-        this.getEmployees();
+      this.getEmployees();
     },
   }
 }

@@ -1,3 +1,6 @@
+<script setup>
+  import ValidationError from '@/components/ValidationError.vue';
+</script>
 <template>
   <VCard>
     <VCardTitle>
@@ -72,6 +75,9 @@
                 <VAlert :color="(this.isUpdated == 200) ? 'success' : 'error'"
                   :icon="(this.isUpdated == 200) ? $success : $error" :title="this.alertMsg"></VAlert>
               </VCol>
+              <VCol cols="12">
+                <ValidationError :validationErrors="validationErrors" />
+              </VCol>
             </VRow>
           </VForm>
         </VCardText>
@@ -138,6 +144,8 @@ export default {
         }
       },
       logo: '',
+      alertMsg: '',
+      validationErrors: false
     }
   },
   mounted() {
@@ -151,6 +159,7 @@ export default {
 
       if (data.status_code == 200) {
         this.isUpdated = 0
+
         this.formData = {
           name: data.company.name,
           email: data.company.email,
@@ -158,6 +167,7 @@ export default {
           id: data.company.id
         }
 
+        this.validationErrors = false
         this.logo = ''
         this.type = "Update"
         this.dialog = true
@@ -174,6 +184,7 @@ export default {
       }
       this.logo = ''
       this.type = "Create"
+      this.validationErrors = false
       this.dialog = true;
     },
 
@@ -186,21 +197,25 @@ export default {
         this.isUpdated = 0
 
         if (this.logo) {
-          // let fData = new FormData()
           this.formData.logo = this.logo
         }
 
-        // Object.entries(this.formData).forEach(([key, value]) => {
-        //   this.formData.append(key, value)
-        // })
+        await axios.post('/api/company/', this.formData, this.config).then(({ data }) => {
 
-        let { data } = await axios.post('/api/company/',
-          this.formData, this.config);
-        this.alertMsg = data.message
-        this.isUpdated = (data.status_code == 200) ? 200 : 500;
-
-        this.getCompanies();
-
+          if (data.status_code == 200) {
+            this.getCompanies();
+            this.alertMsg = data.message
+            this.isUpdated = 200;
+          } else if (data.status_code == 422) {
+            this.validationErrors = data.error
+          } else {
+            this.alertMsg = data.message
+            this.isUpdated = 500;
+          }
+        }).catch(error => {
+          this.alertMsg = error.message
+          this.isUpdated = 500;
+        })
       }
     },
 
@@ -211,12 +226,9 @@ export default {
           this.allCompanies = data.companys;
         }
       }).catch(({ response }) => {
-        if (response.status === 422) {
-          this.validationErrors = response.data.errors
-        } else {
-          this.validationErrors = {}
-          alert(response.data.message)
-        }
+        this.alertMsg = response.message
+        this.isUpdated = 500;
+
       })
     },
 

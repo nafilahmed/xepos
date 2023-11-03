@@ -10,7 +10,7 @@ class Employee extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['first_name','last_name','company_id','email','company'];
+    protected $fillable = ['first_name','last_name','company_id','email','company','phone'];
 
     /**
      * Get the company associated with the user.

@@ -37,13 +37,13 @@ class EmployeeController extends Controller
             $validator = Validator::make($data, [
                 'first_name' => 'required|max:20',
                 'last_name' => 'required|max:20',
-                'company_id' => 'required|max:255',
+                'company_id' => 'max:255',
                 'email' => 'max:255',
                 'phone' => 'max:255',
             ]);
 
             if ($validator->fails()) {
-                return response(['error' => $validator->errors(), 'Validation Error']);
+                return response(['status_code' => 422,'error' => $validator->errors(), 'Validation Error']);
             }
 
             Employee::create($data);
@@ -92,13 +92,13 @@ class EmployeeController extends Controller
             $validator = Validator::make($data, [
                 'first_name' => 'required|max:20',
                 'last_name' => 'required|max:20',
-                'company_id' => 'required|max:255',
+                'company_id' => 'max:255',
                 'email' => 'max:255',
                 'phone' => 'max:255',
             ]);
 
             if ($validator->fails()) {
-                return response(['error' => $validator->errors(), 'Validation Error']);
+                return response(['status_code' => 422,'error' => $validator->errors(), 'Validation Error']);
             }
 
             $employee->update($data);

@@ -1,3 +1,9 @@
+<script setup>
+  import { mapActions } from 'vuex'
+  import logo from '@images/logo.svg?raw'
+  import ValidationError from '@/components/ValidationError.vue'
+</script>
+
 <template>
   <div class="auth-wrapper d-flex align-center justify-center pa-4">
     <VCard class="auth-card pa-4 pt-7" max-width="448">
@@ -43,6 +49,9 @@
                 Login
               </VBtn>
             </VCol>
+            <VCol cols="12">
+              <ValidationError :validationErrors="validationErrors" />
+            </VCol>
 
           </VRow>
         </VForm>
@@ -56,9 +65,6 @@
 </style>
 
 <script>
-import { mapActions } from 'vuex'
-
-import logo from '@images/logo.svg?raw'
 
 export default {
   name: "login",
@@ -68,7 +74,7 @@ export default {
         email: "",
         password: ""
       },
-      validationErrors: {},
+      validationErrors: false,
       processing: false,
       isPasswordVisible: false
     }
@@ -86,11 +92,9 @@ export default {
         if (response.status === 422) {
           this.validationErrors = response.data.errors
         } else {
-          this.validationErrors = {}
+          this.validationErrors = false
           alert(response.data.message)
         }
-      }).finally(() => {
-        this.processing = false
       })
     },
   }

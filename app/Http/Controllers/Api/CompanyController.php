@@ -41,7 +41,7 @@ class CompanyController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return response(['error' => $validator->errors(), 'Validation Error']);
+                return response(['status_code' => 422,'error' => $validator->errors(), 'Validation Error']);
             }
 
             if(!empty($data['logo'])){
