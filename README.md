@@ -10,7 +10,6 @@ php artisan migrate --seed
 ### Create Database & Compile and Hot-Reload for Development
 
 ```sh
-php artisan key:generate
 php artisan serve
 npm run dev
 ```
