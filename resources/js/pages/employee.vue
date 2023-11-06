@@ -59,6 +59,13 @@
         </tr>
       </tbody>
     </VTable>
+    <VRow justify="center">
+      <VCol cols="3">
+        <VContainer class="max-width">
+          <VPagination v-model="pagination.current" :length="pagination.total" @update:model-value="getEmployees" ></VPagination>
+        </VContainer>
+      </VCol>
+    </VRow>
   </VCard>
 
   <div class="text-center">
@@ -161,7 +168,11 @@ export default {
       deleteEmployee: false,
       dialog: false,
       alertMsg: '',
-      validationErrors: false
+      validationErrors: false,
+      pagination: {
+        current: 1,
+        total: 0
+      }
     }
   },
   mounted() {

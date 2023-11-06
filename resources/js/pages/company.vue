@@ -47,6 +47,13 @@
         </tr>
       </tbody>
     </VTable>
+    <VRow justify="center">
+      <VCol cols="3">
+        <VContainer class="max-width">
+          <VPagination v-model="pagination.current" :length="pagination.total" @update:model-value="getCompanies" ></VPagination>
+        </VContainer>
+      </VCol>
+    </VRow>
   </VCard>
 
   <div class="text-center">
@@ -145,7 +152,11 @@ export default {
       },
       logo: '',
       alertMsg: '',
-      validationErrors: false
+      validationErrors: false,
+      pagination: {
+        current: 1,
+        total: 0
+      }
     }
   },
   mounted() {
@@ -220,15 +231,16 @@ export default {
     },
 
     getCompanies: async function () {
-      await axios.get('api/company').then(({ data }) => {
+      await axios.get('api/company?page=' + this.pagination.current).then(({ data }) => {
 
         if (data.status_code == 200) {
-          this.allCompanies = data.companys;
+          this.allCompanies = data.companys.data;
+          this.pagination.current = data.companys.current_page;
+          this.pagination.total = data.companys.last_page;
         }
-      }).catch(({ response }) => {
-        this.alertMsg = response.message
+      }).catch(error => {
+        this.alertMsg = error.message
         this.isUpdated = 500;
-
       })
     },
 
@@ -247,7 +259,7 @@ export default {
 
     handleFileObject: function () {
       this.logo = this.$refs.file.files[0]
-    }
+    },
   }
 }
 </script>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use App\Http\Resources\CompanyResource;
+
 use Validator;
 
 class CompanyController extends Controller
@@ -17,8 +18,12 @@ class CompanyController extends Controller
      */
     public function index()
     {
-        $companys = Company::all();
-        return response(['status_code' => 200, 'companys' => CompanyResource::collection($companys)]);
+        $companys = isset($_REQUEST['page']) ? Company::paginate(10) : $companys = Company::all();
+
+        return response([
+            'status_code' => 200,
+            'companys' => $companys
+        ]);
     }
 
     /**
@@ -55,8 +60,9 @@ class CompanyController extends Controller
                 Company::where('id',$data['id'])->update($data);
             }else{
                 Company::create($data);
-            }
 
+                dispatch(new \App\Jobs\SendEmailQueueJob('nafilahmed8@gmail.com',$data));
+            }
 
             $message = 'Company stored successfully';
         } catch (\Illuminate\Database\QueryException $qe) {
