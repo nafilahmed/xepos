@@ -22,5 +22,5 @@ npm run build
 ### Note:
 
 ```sh
-Check your local port and set it to .env file 'SANCTUM_STATEFUL_DOMAINS'
+Check your local port and set it to .env file 'SANCTUM_STATEFUL_DOMAINS' and add credentails Mailtrap in .env file.
 ```

@@ -247,6 +247,7 @@ export default {
     openDeleteModal: function (id) {
       this.companyId = id
       this.deleteCompany = true
+      this.isUpdated = 0
     },
 
     deleteCompanyFun: async function () {

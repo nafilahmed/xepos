@@ -309,6 +309,7 @@ export default {
     openDeleteModal: function (id) {
       this.employeeId = id
       this.deleteEmployee = true
+      this.isUpdated = 0
     },
 
     deleteEmployeeFun: async function () {
