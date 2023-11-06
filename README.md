@@ -12,6 +12,7 @@ php artisan migrate --seed
 ```sh
 php artisan serve
 npm run dev
+php artisan queue:listen
 ```
 
 ### Type-Check, Compile and Minify for Production
